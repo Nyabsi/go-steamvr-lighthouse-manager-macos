@@ -1,4 +1,7 @@
 ## SteamVR Lighthouse Manager 
+
+THIS IS A FORK FOR MACOS SUPPORT ---- NO PREBUILT BINARIES NOR SUPPORT PROVIDED, PROVIDED AS IS.
+
 A tool to control SteamVR Base Stations 2.0 on your PC.<br> It does not require a SteamVR Headset like HTC Vive or Valve Index, but still requires Bluetooth module to be enabled on your system.
 
 ![Program Image](resources/Program.png) 
