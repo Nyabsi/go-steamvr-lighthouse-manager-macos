@@ -96,7 +96,7 @@ func (lv *LighthouseV2) FindService() {
 
 func connectToPreloadedBaseStation(bs *LighthouseV2, config BaseStationConfiguration, wakeUp bool, attemp int) {
 
-	parsedMac, err := bluetooth.ParseMAC(config.MacAddress)
+	parsedUuid, err := bluetooth.ParseUUID(config.MacAddress)
 
 	if err != nil {
 		log.Printf("Failed to parse mac: %s for lighthouse %s (%+v)\n", config.MacAddress, config.Id, err)
@@ -104,9 +104,7 @@ func connectToPreloadedBaseStation(bs *LighthouseV2, config BaseStationConfigura
 	}
 
 	conn, err := adapter.Connect(bluetooth.Address{
-		MACAddress: bluetooth.MACAddress{
-			MAC: parsedMac,
-		},
+		UUID: parsedUuid,
 	}, bluetooth.ConnectionParams{})
 	if err != nil {
 		log.Printf("Failed to connect to base station: %s %+v", config.Id, err)
@@ -118,7 +116,8 @@ func connectToPreloadedBaseStation(bs *LighthouseV2, config BaseStationConfigura
 
 	bs.adapter = adapter
 
-	defer conn.Disconnect()
+	// this breaks it entirely on macos
+	// defer conn.Disconnect()
 
 	bs.p = &conn
 
@@ -173,7 +172,7 @@ func InitBaseStation(connection *bluetooth.Device, adapter *bluetooth.Adapter, n
 func (lv *LighthouseV2) StartCaching() {
 	if lv.powerStateCharacteristic != nil {
 
-		err := lv.powerStateCharacteristic.EnableNotificationsWithMode(bluetooth.NotificationModeNotify, func(buf []byte) {
+		err := lv.powerStateCharacteristic.EnableNotifications(func(buf []byte) {
 			lv.CachedPowerState = int(buf[0])
 			WEBSOCKET_BROADCAST.Broadcast(prepareIdWithFieldPacket(lv.Id, "lighthouse.update.power_state", "power_state", int(buf[0])))
 			log.Printf("Power state on %s changed: %+v", lv.Id, buf)
@@ -186,7 +185,7 @@ func (lv *LighthouseV2) StartCaching() {
 	}
 
 	if lv.modeCharacteristic != nil {
-		err := lv.modeCharacteristic.EnableNotificationsWithMode(bluetooth.NotificationModeNotify, func(buf []byte) {
+		err := lv.modeCharacteristic.EnableNotifications(func(buf []byte) {
 			lv.CachedChannel = int(buf[0])
 			WEBSOCKET_BROADCAST.Broadcast(prepareIdWithFieldPacket(lv.Id, "lighthouse.update.channel", "channel", int(buf[0])))
 
@@ -226,7 +225,7 @@ func (lv *LighthouseV2) Reconnect() {
 	lv.powerStateCharacteristic = nil
 
 	log.Println("Reconnecting...")
-	parsedMac, err := bluetooth.ParseMAC(lv.mac)
+	parsedUuid, err := bluetooth.ParseUUID(lv.mac)
 
 	if err != nil {
 		log.Printf("Failed to parse MAC: %+v\n", err)
@@ -234,9 +233,7 @@ func (lv *LighthouseV2) Reconnect() {
 	}
 
 	conn, err := adapter.Connect(bluetooth.Address{
-		MACAddress: bluetooth.MACAddress{
-			MAC: parsedMac,
-		},
+		UUID: parsedUuid,
 	}, bluetooth.ConnectionParams{})
 
 	if err != nil {
@@ -392,7 +389,7 @@ func (lv *LighthouseV2) GetId() string {
 
 func (lv *LighthouseV2) GetMAC() string {
 	if lv.p != nil {
-		return lv.p.Address.MAC.String()
+		return lv.p.Address.String()
 	}
 
 	return ""

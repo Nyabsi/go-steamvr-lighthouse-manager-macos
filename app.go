@@ -13,7 +13,6 @@ import (
 	_ "embed"
 
 	"github.com/gen2brain/beeep"
-	"github.com/getlantern/systray"
 	cmap "github.com/orcaman/concurrent-map/v2"
 	wruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 	"tinygo.org/x/bluetooth"
@@ -93,7 +92,7 @@ func (a *App) startup(ctx context.Context) {
 		}
 	}
 
-	go systray.Run(a.trayReady, TrayExit)
+	// go systray.Run(a.trayReady, TrayExit)
 
 	go a.InitBluetooth()
 	go StartHttp()
@@ -223,6 +222,8 @@ func (a *App) ForgetBaseStation(name string) {
 }
 
 // I REALLY SHOULD NOT DO THAT
+// ik right? this shit broke on macos :)
+/*
 func (a *App) trayReady() {
 	systray.SetIcon(icon)
 
@@ -259,6 +260,7 @@ func (a *App) trayReady() {
 func TrayExit() {
 	log.Println("Tray exit.")
 }
+*/
 
 func (a *App) Notify(title string, text string) {
 	beeep.Notify(title, text, "")
@@ -506,7 +508,7 @@ func (a *App) Shutdown() {
 		}
 	}
 
-	systray.Quit()
+	// systray.Quit()
 	os.Exit(0)
 }
 
